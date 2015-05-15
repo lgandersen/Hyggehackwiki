@@ -70,7 +70,14 @@ and diasble cgi plugin:
     # plugins to disable
     disable_plugins: [cgi]
 
-Then rebuild the wiki and that should be it! Now, clone the git-repository behind the wiki 
+Then rebuild the wiki
+
+    $ ikiwiki --setup ~/Hyggehackwiki.setup
+
+and that should be it! 
+
+## Basic usage
+Clone the git-repository behind the wiki 
 
     git clone Hyggehackwiki.git Hyggehackwiki_editable_repos
 
