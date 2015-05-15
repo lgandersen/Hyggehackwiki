@@ -1,0 +1,70 @@
+# ZFS related bits & pieces
+All kinds of ZFS related stuff, e.g., frequently used commands, scripts, small guides and so on.
+
+## Backing up jails with zfs send/receive and ssh
+This is my general procedure for backing up jails on my hetzner box.
+Goedel is the computer at home storing the backup and brouwer is my hetzner server.
+
+First, I create a dataset containing the backup snapshots. Since this is only used for backup storage
+I used the strongest compression possible which is gzip-9 AFAIK.
+
+    $ sudo zfs create cryptpool/backup
+    $ sudo zfs set compression=gzip-9 cryptpool/backup
+    $ sudo zfs create cryptpool/backup/brouwer_jails
+
+Since goedel is behind NAT I create a reverse tunnel when ssh'ing into brouwer from goedel
+
+    $ ssh -R 8000:127.0.0.1:22 brouwer
+
+Create snapshots of all jail (and ezjail-related) data sets on brouwer
+
+    $ sudo zfs snapshot -r cryptpool/jails@backup_test
+    $ zfs list -t snapshot | grep -v 'daily\|weekly\|monthly'
+    NAME                                                            USED  AVAIL  REFER  MOUNTPOINT
+    <snippet_start>
+    cryptpool/jails@backup_test                                        0      -   504K  -
+    cryptpool/jails/basejail@backup_test                               0      -   385M  -
+    cryptpool/jails/newjail@backup_test                                0      -  3.81M  -
+    cryptpool/jails/a.jail.on.brouwer@backup_test                      0      -  18.2M  -
+    <snippet_end>
+
+### To ways of sending snapshots
+Now, with newer versions of FreeBSD (=>10, I think) it is possible to send/receive recursively as well.
+Thus, to be able to send/receive the /cryptpool/jails data set and all descendeing data sets, just use
+
+    $ sudo zfs send -R cryptpool/jails@backup_test | ssh localhost -p 8000 sudo zfs recv -euv cryptpool/backup/brouwer_jails
+
+This is quite easy and straightforward. However, this have several disadvantages from my point of view. The main ones are
+
+1. All snapshots are sent from cryptpool/jails and descending datasets.
+Since I have a lot of snapshots from zfs-periodic that I do not want to transfer this is a bit annoying.
+2. All properties of the original data sets is copied with the zfs send stream.
+This includes compression and mountpoint, both of which I do not want.
+The former is because I use stronger compression on the backup machine than the source and the latter causes all backup datasets to be mounted on /usr/jails/ on the backup machine (together with my jails there!).
+3. My backup machine is on a slow internet connection so it would be nice to send it one jail at a time, such that if a connection timeout occurs I can restart from the last jail I was sending.
+
+Therefore I have made this small script that outputs another small script that sends each jail data set seperately. It also avoids omits the ezjail datasets basejail and newjail.
+
+    #!/bin/sh                                                                                                                                                                                    
+                                                                                                                                                                                                 
+    # Name of the generated script                                                                                                                                                               
+    BACKUP_SENDING_SCRIPT_NAME="zfssend_backup.sh"                                                                                                                                               
+    # dataset path on brouwer where all the JAIL data sets are located                                                                                                                           
+    BASEPATH="cryptpool/jails"                                                                                                                                                                   
+    # Name of the snapshot to send                                                                                                                                                               
+    BACKUP_SNAPSHOT="backup1"                                                                                                                                                                    
+    # dataset path on goedel where all backup snapshots and datasets are located                                                                                                                 
+    REMOTE_BASEPATH="cryptpool/backup/brouwer_jails"                                                                                                                                             
+                                                                                                                                                                                                 
+    echo "#!/bin/sh" > $BACKUP_SENDING_SCRIPT_NAME                                                                                                                                               
+                                                                                                                                                                                                 
+    for JAIL in `ls -l /usr/jails | awk '{print $9}' | grep -v 'newjail\|basejail\|flavours'`                                                                                                    
+    do                                                                                                                                                                                           
+     # If I want to create snapshots one at a time as well                                                                                                                                       
+     #echo "sudo zfs snapshot $BASEPATH/$JAIL@$BACKUP_SNAPSHOT"                                                                                                                                  
+     echo "sudo zfs send $BASEPATH/$JAIL@$BACKUP_SNAPSHOT | ssh localhost -p 8000 sudo zfs recv -euv $REMOTE_BASEPATH" >> $
+    done                                                                                                                                                                                         
+    
+    echo "echo \"FINISHED SENDING DATASETS!\"" >> $BACKUP_SENDING_SCRIPT_NAME
+
+
