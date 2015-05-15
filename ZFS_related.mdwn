@@ -62,7 +62,7 @@ Therefore I have made this small script that outputs another small script that s
     do                                                                                                                                                                                           
      # If I want to create snapshots one at a time as well                                                                                                                                       
      #echo "sudo zfs snapshot $BASEPATH/$JAIL@$BACKUP_SNAPSHOT"                                                                                                                                  
-     echo "sudo zfs send $BASEPATH/$JAIL@$BACKUP_SNAPSHOT | ssh localhost -p 8000 sudo zfs recv -euv $REMOTE_BASEPATH" >> $
+     echo "sudo zfs send $BASEPATH/$JAIL@$BACKUP_SNAPSHOT | ssh localhost -p 8000 sudo zfs recv -ev $REMOTE_BASEPATH" >> $
     done                                                                                                                                                                                         
     
     echo "echo \"FINISHED SENDING DATASETS!\"" >> $BACKUP_SENDING_SCRIPT_NAME
