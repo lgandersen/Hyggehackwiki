@@ -12,26 +12,26 @@ Then initialize new wiki:
 
 where a couple of questions will be asked:
 
-    What will the wiki be named? B2wiki
+    What will the wiki be named? Hyggehackwiki
     What revision control system to use? git
     What wiki user (or openid) will be admin? lolletrolden
     Choose a password:
 
 The admin user and password is probably not that important since we will not be using the cgi-functionality. After answering the questions the wiki is created and the installation completes outputting something like:
 
-    Successfully set up B2wiki:
-        url:         http://example.com/~lolletrolden/B2wiki
-        srcdir:      ~/B2wiki
-        destdir:     ~/public_html/B2wiki
-        repository:  ~/B2wiki.git
-    To modify settings, edit ~/B2wiki.setup and then run:
-        ikiwiki --setup ~/B2wiki.setup
+    Successfully set up Hyggehackwiki:
+        url:         http://example.com/~lolletrolden/Hyggehackwiki
+        srcdir:      ~/Hyggehackwiki
+        destdir:     ~/public_html/Hyggehackwiki
+        repository:  ~/Hyggehackwiki.git
+    To modify settings, edit ~/Hyggehackwiki.setup and then run:
+        ikiwiki --setup ~/Hyggehackwiki.setup
 
 Then fetch the theme we are going to use and put together with the other themes:
 
     sudo git clone git://src.anarcat.ath.cx/night_city && sudo mv night_city /usr/local/share/ikiwiki/themes/
 
-Next, edit the newly created `B2wiki.setup` file. Change
+Next, edit the newly created `Hyggehackwiki.setup` file. Change
     # enable Discussion pages?
     discussion: 1
 
@@ -50,14 +50,14 @@ and then add the theme:
     # name of theme to enable
     theme: night_city
 
-Outcomment all the cgi-related options in `B2wiki.setup`, i.e.:
+Outcomment all the cgi-related options in `Hyggehackwiki.setup`, i.e.:
 
     # url to the ikiwiki.cgi
-    #cgiurl: http://example.com/~lolletrolden/B2wiki/ikiwiki.cgi
+    #cgiurl: http://example.com/~lolletrolden/Hyggehackwiki/ikiwiki.cgi
     # do not adjust cgiurl if CGI is accessed via different URL
     reverse_proxy: 0
     # filename of cgi wrapper to generate
-    #cgi_wrapper: /usr/home/lolletrolden/public_html/B2wiki/ikiwiki.cgi
+    #cgi_wrapper: /usr/home/lolletrolden/public_html/Hyggehackwiki/ikiwiki.cgi
     # mode for cgi_wrapper (can safely be made suid)
     #cgi_wrappermode: 06755
     # number of seconds to delay CGI requests when overloaded
@@ -72,7 +72,7 @@ and diasble cgi plugin:
 
 Then rebuild the wiki and that should be it! Now, clone the git-repository behind the wiki 
 
-    git clone B2wiki.git B2wiki_editable_repos
+    git clone Hyggehackwiki.git Hyggehackwiki_editable_repos
 
 and start writing it! :) Remember to `git push` the changes back to the wiki.
 
@@ -84,7 +84,7 @@ Code snippet for nginx:
         listen          127.0.0.1:80 default;
 
         access_log      /usr/local/www/logs/access.log  combined;
-        root            /usr/home/lolletrolden/public_html/B2wiki/;
+        root            /usr/home/lolletrolden/public_html/Hyggehackwiki/;
         index           index.html index.htm;
 
         location / {
